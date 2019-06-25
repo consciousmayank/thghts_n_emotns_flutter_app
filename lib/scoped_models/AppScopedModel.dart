@@ -84,52 +84,7 @@ class AppScopedModel extends Model {
     );
   }
 
-  Future<List<String>> getTags() async {
-    setIsLoading(true);
-    final List<String> tags = [];
 
-    try {
-      http.Response response = await http
-          .get('https://thoughts-n-emotions.firebaseio.com/tags.json');
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        setIsLoading(false);
-        return tags;
-      }
-      final Map<String, dynamic> tagsList = json.decode(response.body);
-      tagsList.forEach((String key, dynamic tagName) {
-        tags.add(tagName['tag_name']);
-      });
-      setIsLoading(false);
-      return tags;
-    } catch (error) {
-      setIsLoading(false);
-      return tags;
-    }
-  }
-
-  Future<List<Emotions>> getEmotions() async {
-    setIsLoading(true);
-    final List<Emotions> emotions = [];
-
-    try {
-      http.Response response = await http
-          .get('https://thoughts-n-emotions.firebaseio.com/emotions.json');
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        setIsLoading(false);
-        return emotions;
-      }
-      final Map<String, dynamic> emotionsList = json.decode(response.body);
-      emotionsList.forEach((String key, dynamic emotionName) {
-        emotions.add(Emotions(emotionName['color'], emotionName['name_english'],
-            emotionName['name_hindi'], emotionName['text_color']));
-      });
-      setIsLoading(false);
-      return emotions;
-    } catch (error) {
-      setIsLoading(false);
-      return emotions;
-    }
-  }
 
   Future<bool> sendPost(String userEmail, String userId, String tag, String emotion,String emotionColor, String post) async {
     setIsLoading(true);

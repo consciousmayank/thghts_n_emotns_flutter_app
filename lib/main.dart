@@ -16,6 +16,8 @@ import 'package:thghts_n_emotns_flutter_app/screens/DashBoard.dart';
 import 'package:thghts_n_emotns_flutter_app/screens/LoginPage.dart';
 import 'package:thghts_n_emotns_flutter_app/utils/adaptive_theme.dart';
 
+import 'mixins/AllScopedModels.dart';
+
 void main() => runApp(MyApp());
 
 /// This Widget is the main application widget.
@@ -27,7 +29,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  AppScopedModel _model = AppScopedModel();
+  AllScopedModel _model = AllScopedModel();
   bool _isUserLoggedIn = false;
 
   @override
@@ -44,13 +46,13 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return ScopedModel<AppScopedModel>(
+    return ScopedModel<AllScopedModel>(
       child: MaterialApp(
         title: 'Thoughts And Emotions',
         theme: getAdaptiveThemeData(context),
         routes: {
           '/': (BuildContext context) =>
-              !_isUserLoggedIn ? LoginPage() : DashBoard(),
+              !_isUserLoggedIn ? LoginPage(_model) : DashBoard(_model),
         },
       ),
       model: _model,

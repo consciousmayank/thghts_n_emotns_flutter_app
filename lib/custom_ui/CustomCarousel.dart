@@ -25,6 +25,7 @@ class CustomCarouselState extends State<CustomCarousel> {
         body: Center(
           child: Container(
             child: PageView.builder(
+              scrollDirection: Axis.horizontal,
               itemCount: widget._postList.length,
               itemBuilder: (context, index) => animatedItemBuilder(index),
               controller: _pageController,
@@ -47,24 +48,6 @@ class CustomCarouselState extends State<CustomCarousel> {
         initialPage: _currentPage, keepPage: false, viewportFraction: 0.85);
   }
 
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(CustomCarousel oldWidget) {
-    // TODO: implement didUpdateWidget
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
-  void didChangeDependencies() {/**/
-    // TODO: implement didChangeDependencies
-    super.didChangeDependencies();
-  }
-
   animatedItemBuilder(int index) {
     return AnimatedBuilder(
       animation: _pageController,
@@ -75,46 +58,8 @@ class CustomCarouselState extends State<CustomCarousel> {
           value = (1 - (value.abs() * 0.5)).clamp(0.0, 1.0);
         }
         return GestureDetector(
-          onTap: (){
-
-
-
-          Navigator.push(
-              context, new MaterialPageRoute(
-              builder: (context) => new LoginPage()));
-
-
-
-
-
-          },
-          child: Center(
-            child: SizedBox(
-              height: Curves.ease.transform(value) * 450,
-              width: Curves.ease.transform(value) * 450,
-              child: Container(
-                decoration: BoxDecoration(
-                  color:
-                      index % 2 == 0 ? Colors.deepPurpleAccent : Colors.green,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 5.0,
-                      spreadRadius: 5.0,
-                      offset: Offset(
-                        5.0, // horizontal, move right 10
-                        15.0, // vertical, move down 10
-                      ),
-                    )
-                  ],
-
-                  borderRadius: BorderRadius.all(Radius.circular(10.00)),
-                ),
-                margin: EdgeInsets.all(10.00),
-                child: showPosts(widget._postList[index]),
-              ),
-            ),
-          ),
+          onTap: () {},
+          child: makePostsView(index, value),
         );
       },
     );
@@ -141,9 +86,10 @@ class CustomCarouselState extends State<CustomCarousel> {
               ),
               Text(
                 postList.emotion,
-                style: TextStyle(fontSize: 25.00,
-                    fontFamily: 'Alice',),
-
+                style: TextStyle(
+                  fontSize: 25.00,
+                  fontFamily: 'Alice',
+                ),
               ),
               SizedBox(
                 height: 20.00,
@@ -163,4 +109,33 @@ class CustomCarouselState extends State<CustomCarousel> {
       ),
     );
   }
+
+  Widget makePostsView(int index, double value) {
+    return Center(
+      child: SizedBox(
+        height: Curves.ease.transform(value) * 500,
+        width: Curves.ease.transform(value) * 450,
+        child: Container(
+          decoration: BoxDecoration(
+            color: index % 2 == 0 ? Colors.deepPurpleAccent : Colors.green,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 5.0,
+                spreadRadius: 5.0,
+                offset: Offset(
+                  5.0, // horizontal, move right 10
+                  15.0, // vertical, move down 10
+                ),
+              )
+            ],
+            borderRadius: BorderRadius.all(Radius.circular(10.00)),
+          ),
+          margin: EdgeInsets.all(10.00),
+          child: showPosts(widget._postList[index]),
+        ),
+      ),
+    );
+  }
+
 }
