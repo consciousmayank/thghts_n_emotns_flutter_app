@@ -32,6 +32,7 @@ class AddNewPostState extends State<AddNewPost> {
   var itemWidth;
 
   String emotionColor;
+  String textColor;
 
   @override
   void initState() {
@@ -164,6 +165,7 @@ class AddNewPostState extends State<AddNewPost> {
               print(item.englishName);
               emotionsTextEditingController.text = item.englishName;
               emotionColor = item.colorHex;
+              textColor = item.textColor;
               Navigator.pop(context);
             },
             elevation: 5.00,
@@ -282,6 +284,12 @@ class AddNewPostState extends State<AddNewPost> {
 
                 if (moveForward) {
                   model.getLoggedInUser().then((LoggedInUserDetails user) {
+
+                    Map<String, dynamic> comments = {
+                      'id':'asdasd',
+                    };
+
+
                     model
                         .sendPost(
                             user.userEmail,
@@ -289,7 +297,9 @@ class AddNewPostState extends State<AddNewPost> {
                             tagsTextEditingController.text,
                             emotionsTextEditingController.text,
                             emotionColor,
-                            postsTextEditingController.text)
+                            textColor,
+                            postsTextEditingController.text,
+                        comments)
                         .then((bool value) {
                       if (value) {
                         showDialog(

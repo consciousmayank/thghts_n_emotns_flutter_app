@@ -7,6 +7,9 @@ import 'package:thghts_n_emotns_flutter_app/models/PostsData.dart';
 import 'package:thghts_n_emotns_flutter_app/scoped_models/AppScopedModel.dart';
 import 'package:thghts_n_emotns_flutter_app/utils/adapative_progress_indicator.dart';
 import 'package:thghts_n_emotns_flutter_app/utils/adaptive_theme.dart';
+import 'package:thghts_n_emotns_flutter_app/utils/custom_route.dart';
+
+import '../Posts_Details.dart';
 
 class PostsList extends StatefulWidget {
   final AllScopedModel model;
@@ -36,7 +39,7 @@ class PostsListState extends State<PostsList> {
               child: Container(
                 child: postList == null
                     ? AdaptiveProgressIndicator()
-                    : loadList(postList),
+                    : loadList(postList, context),
               ),
             ),
           ),
@@ -57,7 +60,16 @@ class PostsListState extends State<PostsList> {
     }
   }
 
-  loadList(List<PostData> postList) {
-    return CustomCarousel(List.of(postList.reversed));
+  Widget loadList(List<PostData> postList, BuildContext context) {
+    return CustomCarousel(List.of(postList.reversed), toPostDetails);
   }
+
+  void toPostDetails(PostData postList){
+    Navigator.push(
+      context,
+      CustomRoute(
+          builder: (context) => PostsDetails(postList, widget.model)),
+    );
+  }
+
 }

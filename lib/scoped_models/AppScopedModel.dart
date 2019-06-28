@@ -8,12 +8,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:thghts_n_emotns_flutter_app/models/Comments.dart';
 import 'package:thghts_n_emotns_flutter_app/models/Emotion.dart';
 import 'package:thghts_n_emotns_flutter_app/models/LogedInUserDetails.dart';
 import 'package:thghts_n_emotns_flutter_app/models/PostsData.dart';
 
 class AppScopedModel extends Model {
-
   bool isLoading = false;
 
   PublishSubject<bool> _userSubject = PublishSubject();
@@ -78,25 +78,30 @@ class AppScopedModel extends Model {
 
   Future<LoggedInUserDetails> getLoggedInUser() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return new LoggedInUserDetails(
-        prefs.getString('loggedInUser_id'),
-        prefs.getString('loggedInUser_email')
-    );
+    return new LoggedInUserDetails(prefs.getString('loggedInUser_id'),
+        prefs.getString('loggedInUser_email'));
   }
 
-
-
-  Future<bool> sendPost(String userEmail, String userId, String tag, String emotion,String emotionColor, String post) async {
+  Future<bool> sendPost(
+      String userEmail,
+      String userId,
+      String tag,
+      String emotion,
+      String emotionColor,
+      String textColor,
+      String post,
+      Map<String, dynamic> comments) async {
     setIsLoading(true);
     try {
-
       final Map<String, dynamic> postData = {
         'email': userEmail,
         'userId': userId,
         'tag': tag,
         'emotion': emotion,
         'emotionColor': emotionColor,
-        'post': post
+        'textColor': textColor,
+        'post': post,
+        'comment': comments
       };
 
       http.Response response = await http.post(
@@ -126,16 +131,19 @@ class AppScopedModel extends Model {
         notifyListeners();
         return userPosts;
       }
-      final Map<String, dynamic> userAddedPostsList = json.decode(response.body);
+      final Map<String, dynamic> userAddedPostsList =
+          json.decode(response.body);
       userAddedPostsList.forEach((String key, dynamic userPostsData) {
-        userPosts.add(
-          PostData(
-            emotion: userPostsData['emotion'],
-            post: userPostsData['post'],
-            tag: userPostsData['tag'],
-            userId: userPostsData['userId'],
-          )
-        );
+        userPosts.add(PostData(
+          id: key,
+          emotion: userPostsData['emotion'],
+          post: userPostsData['post'],
+          tag: userPostsData['tag'],
+          userId: userPostsData['userId'],
+          emotionColor: userPostsData['emotionColor'],
+          textColor: userPostsData['textColor'],
+          commentsMap: userPostsData['comment']
+        ));
       });
       notifyListeners();
       return userPosts;
@@ -145,9 +153,74 @@ class AppScopedModel extends Model {
     }
   }
 
-  void setIsLoading(bool value){
+  void setIsLoading(bool value) {
     isLoading = value;
     notifyListeners();
+  }
+
+  Future<String> sendComments(
+      String postId,
+      String comment,
+      String userId,
+      String userEmail
+      ) async {
+    setIsLoading(true);
+    String returningString = '';
+    try {
+      final Map<String, dynamic> postData = {
+        'email': userEmail,
+        'userId': userId,
+        'comment': comment
+      };
+
+      http.Response response = await http.post(
+          'https://thoughts-n-emotions.firebaseio.com/userPosts/$postId/comment.json',
+          body: json.encode(postData),
+          headers: {'Content-Type': 'application/json'});
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        setIsLoading(false);
+        return returningString;
+      }else{
+        returningString = comment;
+      }
+      setIsLoading(false);
+      return returningString;
+    } catch (error) {
+      print(error.toString());
+      setIsLoading(false);
+      return returningString;
+    }
+  }
+
+  Future<List<Comments>> getComments(
+      String postId,
+      ) async {
+
+    List<Comments> completeCommentsList = [];
+
+    setIsLoading(true);
+    try {
+
+      http.Response response = await http.get(
+          'https://thoughts-n-emotions.firebaseio.com/userPosts/$postId/comment.json',
+          headers: {'Content-Type': 'application/json'});
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        setIsLoading(false);
+        return completeCommentsList;
+      }
+
+      final Map<String, dynamic> commentsList = json.decode(response.body);
+      commentsList.forEach((String key, dynamic comments) {
+        completeCommentsList.add(Comments(key, comments['comment'], comments['userId'], comments['email']));
+      });
+
+      setIsLoading(false);
+      return completeCommentsList;
+    } catch (error) {
+      print(error.toString());
+      setIsLoading(false);
+      return completeCommentsList;
+    }
   }
 
 }
