@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
-import 'package:thghts_n_emotns_flutter_app/scoped_models/AppScopedModel.dart';
+import 'package:thghts_n_emotns_flutter_app/mixins/AllScopedModels.dart';
 import 'package:thghts_n_emotns_flutter_app/utils/adapative_progress_indicator.dart';
 import 'package:thghts_n_emotns_flutter_app/utils/adaptive_theme.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
@@ -8,6 +8,10 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'DashBoard.dart';
 
 class LoginPage extends StatefulWidget {
+  AllScopedModel model;
+
+  LoginPage(this.model);
+
   @override
   LoginPageState createState() => new LoginPageState();
 }
@@ -35,8 +39,8 @@ class LoginPageState extends State<LoginPage> {
         .width;
     final double targetWidth = deviceWidth > 550.0 ? 500.0 : deviceWidth * 0.95;
 
-    return ScopedModelDescendant<AppScopedModel>(
-      builder: (BuildContext context, Widget child, AppScopedModel model) {
+    return ScopedModelDescendant<AllScopedModel>(
+      builder: (BuildContext context, Widget child, AllScopedModel model) {
         return Scaffold(
             appBar: AppBar(
               backgroundColor: Colors.tealAccent,
@@ -92,7 +96,7 @@ class LoginPageState extends State<LoginPage> {
     );
   }
 
-  _submitForm(AppScopedModel model) {
+  _submitForm(AllScopedModel model) {
     if (!_formKey.currentState.validate()) {
       return;
     }
@@ -109,7 +113,7 @@ class LoginPageState extends State<LoginPage> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (BuildContext context) {
-              return DashBoard();
+              return DashBoard(widget.model);
             },
           ),
         );
@@ -123,7 +127,7 @@ class LoginPageState extends State<LoginPage> {
                 actions: <Widget>[
                   FlatButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text('Retry'),
+                    child: Text('Try again, to Login'),
                   )
                 ],
               );
@@ -132,7 +136,7 @@ class LoginPageState extends State<LoginPage> {
     });
   }
 
-  Widget buildBody(AppScopedModel model) {
+  Widget buildBody(AllScopedModel model) {
     return Container(
       decoration: getTealGradient(),
       child: Center(

@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:thghts_n_emotns_flutter_app/mixins/AllScopedModels.dart';
 import 'package:thghts_n_emotns_flutter_app/models/Emotion.dart';
 import 'package:thghts_n_emotns_flutter_app/models/LogedInUserDetails.dart';
 import 'package:thghts_n_emotns_flutter_app/scoped_models/AppScopedModel.dart';
 import 'package:thghts_n_emotns_flutter_app/utils/adapative_progress_indicator.dart';
 
 class AddNewPost extends StatefulWidget {
+  final Function onItemTapped;
+
+
+  AddNewPost(this.onItemTapped);
+
   @override
   AddNewPostState createState() => new AddNewPostState();
 }
@@ -26,13 +32,13 @@ class AddNewPostState extends State<AddNewPost> {
   var itemWidth;
 
   String emotionColor;
+  String textColor;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
   }
-
 
   @override
   void dispose() {
@@ -47,8 +53,8 @@ class AddNewPostState extends State<AddNewPost> {
     size = MediaQuery.of(context).size;
     itemHeight = (size.height - kToolbarHeight - 24) / 8;
     itemWidth = size.width / 2;
-    return ScopedModelDescendant<AppScopedModel>(
-      builder: (BuildContext context, Widget child, AppScopedModel model) {
+    return ScopedModelDescendant<AllScopedModel>(
+      builder: (BuildContext context, Widget child, AllScopedModel model) {
         return Scaffold(
             appBar: AppBar(
               backgroundColor: Colors.tealAccent,
@@ -63,7 +69,7 @@ class AddNewPostState extends State<AddNewPost> {
     );
   }
 
-  Widget buildTagsWidget(BuildContext context, AppScopedModel model) {
+  Widget buildTagsWidget(BuildContext context, AllScopedModel model) {
     return Container(
       decoration: containerDecoration(),
       child: TextField(
@@ -71,28 +77,21 @@ class AddNewPostState extends State<AddNewPost> {
           autofocus: false,
           controller: tagsTextEditingController,
           onTap: () {
-            model.getTags().then((List<String> tags) {
-              showModalBottomSheet(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Container(
-                      decoration: tealGradient(),
-                      child: GridView.count(
-                        crossAxisCount: 3,
-                        childAspectRatio: (itemWidth / itemHeight),
-                        // Generate 100 widgets that display their index in the List.
-                        children: makeTagsList(tags, context),
-                      ),
-                    );
-                  });
-            });
+            FocusScope.of(context).requestFocus(new FocusNode());
+            if (model.allTags.isEmpty) {
+              model.getTags().then((List<String> tags) {
+                showTagsBottomSheet(tags);
+              });
+            } else {
+              showTagsBottomSheet(model.allTags);
+            }
           },
           decoration: plainTextFieldDecoration(
               'Choose a Tag for your Post.', _validateTags)),
     );
   }
 
-  Widget buildEmotionsWidget(BuildContext context, AppScopedModel model) {
+  Widget buildEmotionsWidget(BuildContext context, AllScopedModel model) {
     return Container(
       decoration: containerDecoration(),
       child: TextField(
@@ -100,20 +99,14 @@ class AddNewPostState extends State<AddNewPost> {
         autofocus: false,
         controller: emotionsTextEditingController,
         onTap: () {
-          model.getEmotions().then((List<Emotions> tags) {
-            showModalBottomSheet(
-                context: context,
-                builder: (BuildContext context) {
-                  return Container(
-                    decoration: tealGradient(),
-                    child: GridView.count(
-                      crossAxisCount: 3,
-                      // Generate 100 widgets that display their index in the List.
-                      children: makeEmotionsList(tags, context),
-                    ),
-                  );
-                });
-          });
+          FocusScope.of(context).requestFocus(new FocusNode());
+          if (model.allEmotions.isEmpty) {
+            model.getEmotions().then((List<Emotions> emotionsList) {
+              makeEmotionsBottomSheet(emotionsList);
+            });
+          } else {
+            makeEmotionsBottomSheet(model.allEmotions);
+          }
         },
         decoration: plainTextFieldDecoration(
             'Choose an Emotion too.', _validateEmotions),
@@ -172,6 +165,7 @@ class AddNewPostState extends State<AddNewPost> {
               print(item.englishName);
               emotionsTextEditingController.text = item.englishName;
               emotionColor = item.colorHex;
+              textColor = item.textColor;
               Navigator.pop(context);
             },
             elevation: 5.00,
@@ -182,7 +176,7 @@ class AddNewPostState extends State<AddNewPost> {
     return myWidgets;
   }
 
-  Widget buildPostsWidget(BuildContext context, AppScopedModel model) {
+  Widget buildPostsWidget(BuildContext context, AllScopedModel model) {
     return Expanded(
       child: Container(
         decoration: containerDecoration(),
@@ -234,18 +228,18 @@ class AddNewPostState extends State<AddNewPost> {
     ));
   }
 
-  buildUi(AppScopedModel model) {
+  buildUi(AllScopedModel model) {
     return Container(
       padding: EdgeInsets.all(10.00),
       decoration: BoxDecoration(
           gradient: new LinearGradient(
-            colors: [
-              Colors.teal,
-              Colors.tealAccent,
-            ],
-            begin: FractionalOffset.bottomLeft,
-            end: FractionalOffset.topRight,
-          )),
+        colors: [
+          Colors.teal,
+          Colors.tealAccent,
+        ],
+        begin: FractionalOffset.bottomLeft,
+        end: FractionalOffset.topRight,
+      )),
       child: Column(
         children: <Widget>[
           buildTagsWidget(context, model),
@@ -289,17 +283,23 @@ class AddNewPostState extends State<AddNewPost> {
                 });
 
                 if (moveForward) {
-                  model
-                      .getLoggedInUser()
-                      .then((LoggedInUserDetails user) {
+                  model.getLoggedInUser().then((LoggedInUserDetails user) {
+
+                    Map<String, dynamic> comments = {
+                      'id':'asdasd',
+                    };
+
+
                     model
                         .sendPost(
-                        user.userEmail,
-                        user.userId,
-                        tagsTextEditingController.text,
-                        emotionsTextEditingController.text,
-                        emotionColor,
-                        postsTextEditingController.text)
+                            user.userEmail,
+                            user.userId,
+                            tagsTextEditingController.text,
+                            emotionsTextEditingController.text,
+                            emotionColor,
+                            textColor,
+                            postsTextEditingController.text,
+                        comments)
                         .then((bool value) {
                       if (value) {
                         showDialog(
@@ -308,11 +308,13 @@ class AddNewPostState extends State<AddNewPost> {
                               return AlertDialog(
                                 title: Text('Post added Successfully.'),
                                 content:
-                                Text('Please go to Thought Train'),
+                                Text('Taking back to thought train..'),
                                 actions: <Widget>[
                                   FlatButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
+                                    onPressed: () {
+                                      widget.onItemTapped(0);
+                                      Navigator.of(context).pop();
+                                    },
                                     child: Text('Okay'),
                                   )
                                 ],
@@ -326,5 +328,36 @@ class AddNewPostState extends State<AddNewPost> {
         ],
       ),
     );
+  }
+
+  void showTagsBottomSheet(List<String> tags) {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+            decoration: tealGradient(),
+            child: GridView.count(
+              crossAxisCount: 3,
+              childAspectRatio: (itemWidth / itemHeight),
+              // Generate 100 widgets that display their index in the List.
+              children: makeTagsList(tags, context),
+            ),
+          );
+        });
+  }
+
+  void makeEmotionsBottomSheet(List<Emotions> emotionsList) {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+            decoration: tealGradient(),
+            child: GridView.count(
+              crossAxisCount: 3,
+              // Generate 100 widgets that display their index in the List.
+              children: makeEmotionsList(emotionsList, context),
+            ),
+          );
+        });
   }
 }
