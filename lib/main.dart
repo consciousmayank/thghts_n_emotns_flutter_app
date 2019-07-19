@@ -34,12 +34,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    _model.isUserLoggedIn();
-    _model.userSubject.listen((bool isUserLoggedIn) {
-      setState(() {
-        _isUserLoggedIn = isUserLoggedIn;
-      });
-    });
     super.initState();
   }
 
@@ -51,8 +45,18 @@ class _MyAppState extends State<MyApp> {
         title: 'Thoughts And Emotions',
         theme: getAdaptiveThemeData(context),
         routes: {
-          '/': (BuildContext context) =>
-              !_isUserLoggedIn ? LoginPage(_model) : DashBoard(_model),
+          '/': (BuildContext context) {
+            _model.isUserLoggedIn().then((bool value) {
+              _isUserLoggedIn = value;
+              print("Value is $value");
+            });
+
+            if (_isUserLoggedIn) {
+              return DashBoard(_model);
+            } else {
+              return LoginPage(_model);
+            }
+          },
         },
       ),
       model: _model,

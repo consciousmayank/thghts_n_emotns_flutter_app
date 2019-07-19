@@ -16,23 +16,18 @@ import 'package:thghts_n_emotns_flutter_app/models/PostsData.dart';
 class AppScopedModel extends Model {
   bool isLoading = false;
 
-  PublishSubject<bool> _userSubject = PublishSubject();
-
-  PublishSubject<bool> get userSubject {
-    return _userSubject;
-  }
-
-  void isUserLoggedIn() async {
+  Future<bool> isUserLoggedIn() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    _userSubject.add(prefs.getBool('isUserLoggedIn') != null
+
+    return prefs.getBool('isUserLoggedIn') != null
         ? prefs.getBool('isUserLoggedIn')
-        : false);
-    notifyListeners();
+        : false;
   }
 
   void setUserLoggedIn(bool value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool('isUserLoggedIn', value);
+    print("Saving userLoggedIn : $value");
     notifyListeners();
   }
 
@@ -57,7 +52,7 @@ class AppScopedModel extends Model {
           LoggedInUserDetails user =
               LoggedInUserDetails(key, userListData['userName']);
           saveLoggedInUser(user);
-          setUserLoggedIn(false);
+          setUserLoggedIn(true);
           result = true;
         }
       });
@@ -135,15 +130,14 @@ class AppScopedModel extends Model {
           json.decode(response.body);
       userAddedPostsList.forEach((String key, dynamic userPostsData) {
         userPosts.add(PostData(
-          id: key,
-          emotion: userPostsData['emotion'],
-          post: userPostsData['post'],
-          tag: userPostsData['tag'],
-          userId: userPostsData['userId'],
-          emotionColor: userPostsData['emotionColor'],
-          textColor: userPostsData['textColor'],
-          commentsMap: userPostsData['comment']
-        ));
+            id: key,
+            emotion: userPostsData['emotion'],
+            post: userPostsData['post'],
+            tag: userPostsData['tag'],
+            userId: userPostsData['userId'],
+            emotionColor: userPostsData['emotionColor'],
+            textColor: userPostsData['textColor'],
+            commentsMap: userPostsData['comment']));
       });
       notifyListeners();
       return userPosts;
@@ -159,11 +153,7 @@ class AppScopedModel extends Model {
   }
 
   Future<String> sendComments(
-      String postId,
-      String comment,
-      String userId,
-      String userEmail
-      ) async {
+      String postId, String comment, String userId, String userEmail) async {
     setIsLoading(true);
     String returningString = '';
     try {
@@ -180,7 +170,7 @@ class AppScopedModel extends Model {
       if (response.statusCode != 200 && response.statusCode != 201) {
         setIsLoading(false);
         return returningString;
-      }else{
+      } else {
         returningString = comment;
       }
       setIsLoading(false);
@@ -193,14 +183,12 @@ class AppScopedModel extends Model {
   }
 
   Future<List<Comments>> getComments(
-      String postId,
-      ) async {
-
+    String postId,
+  ) async {
     List<Comments> completeCommentsList = [];
 
     setIsLoading(true);
     try {
-
       http.Response response = await http.get(
           'https://thoughts-n-emotions.firebaseio.com/userPosts/$postId/comment.json',
           headers: {'Content-Type': 'application/json'});
@@ -211,7 +199,8 @@ class AppScopedModel extends Model {
 
       final Map<String, dynamic> commentsList = json.decode(response.body);
       commentsList.forEach((String key, dynamic comments) {
-        completeCommentsList.add(Comments(key, comments['comment'], comments['userId'], comments['email']));
+        completeCommentsList.add(Comments(
+            key, comments['comment'], comments['userId'], comments['email']));
       });
 
       setIsLoading(false);
@@ -222,5 +211,4 @@ class AppScopedModel extends Model {
       return completeCommentsList;
     }
   }
-
 }
